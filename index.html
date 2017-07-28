@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+	</head>
+	<style>
+		*{padding: 0;margin: 0;list-style: none;}
+		img{border: none;}
+		.clearfix{zoom: 1;}
+		.clearfix:after{
+			display: block;
+			content: '.';
+			clear: both;
+			height: 0;
+			overflow: hidden;
+		}
+		#ul1{
+			width: 1080px;
+			margin: 100px auto;
+		}
+	    li{
+			width: 247px;
+			float: left;
+			margin-right: 10px;
+			background: #ccc;
+		}
+		li div{
+			border: 1px solid #333;
+			padding:10px;
+			margin-bottom:10px;
+		}
+		li div img{
+			width:225px;
+			display:block;
+		}
+	</style>
+	<body>
+		<ul id="ul1" class="clearfix">
+			<li></li>
+			<li></li>
+			<li></li>
+			<li></li>
+		</ul>
+		<input type="button" value="点击加载" id="btn" style="display: none;"/>
+	</body>
+</html>
+<script src="ajax.js"></script>
+<script>
+	window.onload=function(){
+		var oUl = document.getElementById('ul1');
+		var aLi = oUl.getElementsByTagName('li');
+		var iLen = aLi.length;
+		var iPage=1;
+		var b = true;
+		getList();//初始化数据
+		function getList(){
+			ajax('get','getPics.php','cpage='+iPage,function(data){
+				var data = JSON.parse(data);
+				if(!data.length){
+					//后续没有数据了
+					alert('meiyoul');
+					return;
+				}
+				for(var i = 0;i<data.length;i++){
+					//获取高度最短的li
+					var _index = getShort();
+					
+					var oDiv = document.createElement('div');
+					var oImg = document.createElement('img');
+					oImg.src = data[i].preview;
+					oImg.style.width='225px';
+					oImg.style.height = data[i].height * (225/data[i].width)+'px';
+					oDiv.appendChild(oImg);
+					var oP = document.createElement('p');
+					oP.innerHTML = data[i].title;
+					oDiv.appendChild(oP);
+					aLi[_index].appendChild(oDiv);
+				}
+				b = true;
+			})
+		}
+
+//点击加载
+        var oBtn = document.getElementById('btn');
+        oBtn.onclick=function(){
+            var _index = getShort();
+        	var oLi = aLi[_index];        	
+        	var scrollTop = document.documentElement.scrollTop||document.body.scrollTop;
+        	if (getTop(oLi)+oLi.offsetHeight<document.documentElement.clientHeight+scrollTop) {
+        		if(b){
+        			b=false;
+        			iPage++;
+        			getList();
+        		}
+        	}
+        }
+
+        window.onscroll = function(){
+        	var _index = getShort();
+        	var oLi = aLi[_index];
+             var oBtn = document.getElementById('btn');
+        	
+        	var scrollTop = document.documentElement.scrollTop||document.body.scrollTop;
+        	if (getTop(oLi)+oLi.offsetHeight<document.documentElement.clientHeight+scrollTop) {
+        		oBtn.style.display='block';
+/*        		if(b){
+        			b=false;
+        			iPage++;
+        			getList();
+        		}*/
+        	}
+        }
+
+
+		//高度最短的li
+		function getShort(){
+			var index = 0;
+			var ih = aLi[index].offsetHeight;
+			for (var i = 0;i<iLen;i++) {
+				if(aLi[i].offsetHeight<ih){
+					index = i;
+					ih = aLi[i].offsetHeight;
+				}
+			}
+			return index;
+		}
+
+	    //获取滚动的高度
+	    function getTop(obj){
+	    	var iTop = 0;
+	    	while(obj){
+	    		iTop += obj.offsetTop;
+	    		obj = obj.offsetParent;
+	    	}
+	    	return iTop;
+	    }
+	}
+</script>
